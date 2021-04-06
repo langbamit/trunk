@@ -10,6 +10,7 @@ Added an example application for using Trunk with a vanilla (no frameworks) Rust
 
 ### fixed
 - Fixed [#148](https://github.com/thedodd/trunk/issues/148): any changes detected under a `.git` path are now being ignored by default.
+- Fixed [#163](https://github.com/thedodd/trunk/issues/163): allow using `copy-file` assets with files without a file extension.
 
 ## 0.10.0
 ### changed
