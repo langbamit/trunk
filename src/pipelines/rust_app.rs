@@ -30,6 +30,9 @@ pub struct RustApp {
     /// An optional binary name which will cause cargo & wasm-bindgen to process only the target
     /// binary.
     bin: Option<String>,
+    no_default_features: bool,
+    all_features: bool,
+    features: Option<String>,
     /// An option to instruct wasm-bindgen to preserve debug info in the final WASM output, even
     /// for `--release` mode.
     keep_debug: bool,
@@ -60,6 +63,9 @@ impl RustApp {
             })
             .unwrap_or_else(|| html_dir.join("Cargo.toml"));
         let bin = attrs.get("data-bin").map(|val| val.to_string());
+        let no_default_features = attrs.contains_key("data-cargo-no-default-features");
+        let all_features = attrs.contains_key("data-cargo-all-features");
+        let features = attrs.get("data-cargo-features").map(|val| val.to_string());
         let keep_debug = attrs.contains_key("data-keep-debug");
         let no_demangle = attrs.contains_key("data-no-demangle");
         let wasm_opt = attrs.get("data-wasm-opt").map(|val| val.parse()).transpose()?.unwrap_or_default();
@@ -72,6 +78,9 @@ impl RustApp {
             manifest,
             ignore_chan,
             bin,
+            no_default_features,
+            all_features,
+            features,
             keep_debug,
             no_demangle,
             wasm_opt,
@@ -87,6 +96,9 @@ impl RustApp {
             manifest,
             ignore_chan,
             bin: None,
+            no_default_features: false,
+            all_features: false,
+            features: None,
             keep_debug: false,
             no_demangle: false,
             wasm_opt: WasmOptLevel::default(),
@@ -125,6 +137,17 @@ impl RustApp {
             args.push("--bin");
             args.push(bin);
         }
+        if self.no_default_features {
+            args.push("--no-default-features");
+        }
+        if self.all_features {
+            args.push("--all-features");
+        }
+        if let Some(features) = &self.features {
+            args.push("--features");
+            args.push(features);
+        }
+
         let build_res = run_command("cargo", &args).await.context("error during cargo build execution");
 
         // Send cargo's target dir over to the watcher to be ignored. We must do this before
